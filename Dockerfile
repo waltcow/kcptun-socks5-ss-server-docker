@@ -2,8 +2,7 @@
 FROM alpine:latest
 MAINTAINER cnDocker
 
-ENV SS_URL=https://github.com/shadowsocks/shadowsocks-libev/archive/v2.5.6.tar.gz \
-    SS_DIR=shadowsocks-libev-2.5.6 \
+ENV SSR_URL=https://github.com/shadowsocksr/shadowsocksr/archive/manyuser.zip \
     libsodium_latest="https://github.com/jedisct1/libsodium/releases/download/1.0.11/libsodium-1.0.11.tar.gz" \
     CONF_DIR="/usr/local/conf" \
     kcptun_latest="https://github.com/xtaci/kcptun/releases/latest" \
@@ -12,12 +11,6 @@ ENV SS_URL=https://github.com/shadowsocks/shadowsocks-libev/archive/v2.5.6.tar.g
 RUN set -ex && \
     apk add --no-cache pcre bash && \
     apk add --no-cache  --virtual TMP autoconf build-base wget curl tar libtool linux-headers openssl-dev pcre-dev && \
-    curl -sSL $SS_URL | tar xz && \
-    cd $SS_DIR && \
-    ./configure --disable-documentation && \
-    make install && \
-    cd .. && \
-    rm -rf $SS_DIR && \
     mkdir /tmp/libsodium && \
     curl -Lk ${libsodium_latest}|tar xz -C /tmp/libsodium --strip-components=1 && \
     cd /tmp/libsodium && \
@@ -40,6 +33,10 @@ RUN set -ex && \
     apk --no-cache del --virtual TMP && \
     apk --no-cache del build-base autoconf && \
     rm -rf /var/cache/apk/* ~/.cache /tmp/libsodium
+
+RUN set -ex && \
+    apk add --no-cache py2-pip libsodium && \
+    pip --no-cache-dir install ${SSR_URL} 
 
 ADD entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

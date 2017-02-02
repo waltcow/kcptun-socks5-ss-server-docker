@@ -10,6 +10,7 @@ RUNENV=${RUNENV:-kcptunsocks-kcptunss}                        #"RUNENV": kcptuns
 KCPTUN_CONF="/usr/local/conf/kcptun_config.json"
 KCPTUN_SS_CONF="/usr/local/conf/kcptun_ss_config.json"
 SS_CONF="/usr/local/conf/ss_config.json"
+
 # ======= SS CONFIG ======
 SS_SERVER_ADDR=${SS_SERVER_ADDR:-0.0.0.0}                     #"server": "0.0.0.0",
 SS_SERVER_PORT=${SS_SERVER_PORT:-8388}                        #"server_port": 8388,
@@ -20,6 +21,11 @@ SS_DNS_ADDR=${SS_DNS_ADDR:-8.8.8.8}                           #-d "8.8.8.8",
 SS_UDP=${SS_UDP:-true}                                        #-u support,
 SS_ONETIME_AUTH=${SS_ONETIME_AUTH:-true}                      #-A support,
 SS_FAST_OPEN=${SS_FAST_OPEN:-true}                            #--fast-open support,
+SS_PROTOCOL=${SS_PROTOCOL:-origin}                            #ss protocol "origin" 
+SS_PROTOCOL_PARAM=${SS_PROTOCOL_PARAM}                        #"protocol_param": "64#12345:breakwa11,233:zhihuyaowan"
+SS_OBFS=${SS_OBFS:-tls1.2_ticket_auth_compatible}             #混淆插件，默认"tls1.2_ticket_auth_compatible"
+SS_OBFS_PARAM=${SS_OBFS_PARAM}                                #混淆插件参数默认为"obfs_param":""
+  
 # ======= KCPTUN CONFIG ======
 KCPTUN_LISTEN=${KCPTUN_LISTEN:-45678}                         #"listen": ":45678",
 KCPTUN_SS_LISTEN=${KCPTUN_SS_LISTEN:-34567}                   #"listen": ":45678", kcptun for ss listen port
@@ -40,7 +46,11 @@ KCPTUN_NOCOMP=${KCPTUN_NOCOMP:-false}                         #"nocomp": false
     "local_port":1080,
     "password":"${SS_PASSWORD}",
     "timeout":${SS_TIMEOUT},
-    "method":"${SS_METHOD}"
+    "method":"${SS_METHOD}",
+    "obfs": "${SS_OBFS}",
+    "obfs_param": "${SS_OBFS_PARAM}",
+    "protocol": "${SS_PROTOCOL}",
+    "protocol_param": "${SS_PROTOCOL_PARAM}"
 }
 EOF
 if [[ "${SS_UDP}" =~ ^[Tt][Rr][Uu][Ee]|[Yy][Ee][Ss]|1|[Ee][Nn][Aa][Bb][Ll][Ee]$ ]]; then
@@ -102,11 +112,12 @@ echo "+---------------------------------------------------------+"
 echo ""
 # kcptunsocks-kcptunss
 if [[ "${RUNENV}" =~ ^[Kk][Cc][Pp][Tt][Uu][Nn][Ss][Oo][Cc][Kk][Ss]-[Kk][Cc][Pp][Tt][Uu][Nn][Ss][Ss]$ ]]; then
+    cat ${SS_CONF}
     echo "Starting Shadowsocks-libev..."
-    nohup ss-server -c ${SS_CONF} -d "${SS_DNS_ADDR}" ${SS_UDP_FLAG}${SS_ONETIME_AUTH_FLAG}${SS_FAST_OPEN_FLAG} >/dev/null 2>&1 &
+    nohup ssserver -c ${SS_CONF} -d start >/dev/null 2>&1 &
     sleep 0.3
-    echo "ss-server (pid `pidof ss-server`)is running."
-    netstat -ntlup | grep ss-server
+    echo "ss-server is running."
+    netstat -ntlup 
     echo "Starting Kcptun for Shadowsocks-libev..."
     nohup kcp-server -c ${KCPTUN_SS_CONF}  >/dev/null 2>&1 &
     sleep 0.3
@@ -137,7 +148,7 @@ elif [[ "${RUNENV}" =~ ^[Kk][Cc][Pp][Tt][Uu][Nn][Ss][Oo][Cc][Kk][Ss]$ ]]; then
 # kcptunss
 elif [[ "${RUNENV}" =~ ^[Kk][Cc][Pp][Tt][Uu][Nn][Ss][Ss]$ ]]; then
     echo "Starting Shadowsocks-libev..."
-    nohup ss-server -c ${SS_CONF} -d "${SS_DNS_ADDR}" ${SS_UDP_FLAG}${SS_ONETIME_AUTH_FLAG}${SS_FAST_OPEN_FLAG} >/dev/null 2>&1 &
+    nohup ssserver -c ${SS_CONF} -d start >/dev/null 2>&1 &
     sleep 0.3
     echo "ss-server (pid `pidof ss-server`)is running."
     netstat -ntlup | grep ss-server
@@ -151,7 +162,7 @@ elif [[ "${RUNENV}" =~ ^[Kk][Cc][Pp][Tt][Uu][Nn][Ss][Ss]$ ]]; then
 # ss
 elif [[ "${RUNENV}" =~ ^[Ss][Ss]$ ]]; then
     echo "Starting Shadowsocks-libev..."
-    exec "ss-server" -c ${SS_CONF} -d "${SS_DNS_ADDR}" ${SS_UDP_FLAG}${SS_ONETIME_AUTH_FLAG}${SS_FAST_OPEN_FLAG}
+    exec "ssserver" -c ${SS_CONF} -d start
 else
     echo "RUNENV is ${RUNENV} setting error, start failed!"
 fi

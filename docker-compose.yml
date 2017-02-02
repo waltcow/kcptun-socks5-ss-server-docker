@@ -1,0 +1,43 @@
+kcptun:
+  image: cndocker/kcptun-socks5-ss-server
+  container_name: kcptun_ss
+  ports:
+    - "3000:3000"
+    - "3000:3000/udp"
+    - "8080:8080"
+    - "8080:8080/udp"
+    - "8081:8081"
+    - "8081:8081/udp"
+  environment: 
+    RUNENV: "kcptunsocks-kcptunss"
+    SS_SERVER_PORT: 3000
+    SS_METHOD: "rc4-md5"
+    SS_PASSWORD: "crossfire"
+    SS_ONETIME_AUTH: "false"
+    SS_PROTOCOL: "origin"   
+    SS_PROTOCOL_PARAM: ""
+    SS_OBFS: "http_simple"    
+    KCPTUN_LISTEN: 8080
+    KCPTUN_SS_LISTEN: 8081
+    KCPTUN_SOCKS5_PORT: 8888
+    KCPTUN_KEY: "crossfire"
+    KCPTUN_CRYPT: "salsa20"
+    KCPTUN_MODE: "fast2"
+    KCPTUN_MTU: 1350
+    KCPTUN_SNDWND: 1024
+    KCPTUN_RCVWND: 1024
+    KCPTUN_NOCOMP: "false"
+   
+only_ss:
+  image: cndocker/kcptun-socks5-ss-server 
+  container_name: only_ss
+  ports:
+    - "4000:4000"
+    - "4000:4000/udp"
+  environment:
+    RUNENV: "ss"
+    SS_SERVER_PORT: 4000
+    SS_METHOD: "rc4-md5"
+    SS_PASSWORD: "crossfire"
+    SS_ONETIME_AUTH: "false"
+  
